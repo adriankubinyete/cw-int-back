@@ -1,5 +1,8 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma";
+import { logger } from "../lib/logger";
+
+const serviceLogger = logger.child({ context: "AuthService" });
 
 export class AuthService {
 	async register(name: string, email: string, password: string) {
@@ -16,6 +19,8 @@ export class AuthService {
 		const user = await prisma.user.create({
 			data: { name, email, passwordHash },
 		});
+
+		serviceLogger.info(`user registered: ${email}, id: ${user.id}`);
 
 		return {
 			id: user.id,
@@ -40,6 +45,8 @@ export class AuthService {
 			throw new Error("Invalid credentials");
 		}
 
+		serviceLogger.info(`user logged in: ${email.replace(/^(.{2})[^@]*(?=@)/, "$1***")}, id: ${user.id}`);
+
 		return {
 			id: user.id,
 			name: user.name,
@@ -47,3 +54,4 @@ export class AuthService {
 		};
 	}
 }
+

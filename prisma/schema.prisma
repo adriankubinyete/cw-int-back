@@ -48,6 +48,8 @@ model Workflow {
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   executionLogs ExecutionLog[]
+
+  @@index([userId])
 }
 
 model ExecutionLog {
@@ -62,6 +64,8 @@ model ExecutionLog {
   contactPhone   String?
 
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
 }
 
 model Integration {

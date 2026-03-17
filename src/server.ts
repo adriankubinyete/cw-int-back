@@ -1,5 +1,6 @@
 import { buildApp } from "./app";
 import { config } from "./config";
+import { logger } from "./lib/logger";
 
 async function start() {
 	const app = buildApp();
@@ -9,7 +10,7 @@ async function start() {
 		host: "0.0.0.0",
 	});
 
-	console.log(`Server running on port ${config.port}`);
+	logger.debug("server started", { port: config.port });
 }
 
 start();

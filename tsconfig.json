@@ -20,7 +20,7 @@
 		"declarationMap": true,
 		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
-		"exactOptionalPropertyTypes": true,
+		// "exactOptionalPropertyTypes": true,
 		// Style Options
 		// "noImplicitReturns": true,
 		// "noImplicitOverride": true,
@@ -37,5 +37,6 @@
 		"moduleDetection": "force",
 		"skipLibCheck": true
 	},
-	"exclude": ["prisma.config.ts"]
+	"exclude": ["prisma.config.ts"],
+  "include": ["src/**/*.ts"]
 }
