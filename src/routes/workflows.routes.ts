@@ -1,9 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import {
-	createWorkflowSchema,
-	updateWorkflowSchema,
-} from "../dtos/workflow.dto";
+import { createWorkflowSchema, updateWorkflowSchema } from "../schemas/workflow.schema";
 import { logger } from "../lib/logger";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { WorkflowService } from "../services/workflow.service";
@@ -33,7 +30,6 @@ export async function workflowsRoutes(app: FastifyInstance) {
 		return reply.code(201).send(workflow);
 	});
 
-	// ✅
 	app.get("/workflows/:id", async (request, reply) => {
 		const { id } = z.object({ id: z.string() }).parse(request.params);
 		routeLogger.info(`getting workflow: ${id} for user ${request.user.userId}`);

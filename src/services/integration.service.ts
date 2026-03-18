@@ -1,9 +1,10 @@
-import type { ErpType } from "@prisma/client";
+import type { IntegrationType } from "@prisma/client";
 import { decrypt, encrypt } from "../lib/encryption";
 import { prisma } from "../lib/prisma";
 import type { UpdateIntegrationInput } from "../schemas/integrations.schema";
 import type { ErpAdapter } from "./erp/erp.interface";
 import { erpRegistry } from "./erp/erp.registry";
+import { ChatwootClient, type ChatwootAuthConfig } from "../lib/chatwoot";
 
 export class IntegrationService {
 	// -------------------------------------------------------------------------
@@ -22,11 +23,11 @@ export class IntegrationService {
 		return prisma.integration.findMany({
 			where: {
 				userId,
-				...(erpType ? { erpType: erpType.toUpperCase() as ErpType } : {}),
+				...(erpType ? { erpType: erpType.toUpperCase() as IntegrationType } : {}),
 			},
 			select: {
 				id: true,
-				erpType: true,
+				integrationType: true,
 				name: true,
 				isActive: true,
 				testedAt: true,
@@ -47,14 +48,14 @@ export class IntegrationService {
 		erpConfig: unknown = {},
 		name?: string,
 	) {
-		const resolvedErpType = erpType.toUpperCase() as ErpType;
+		const resolvedIntegrationType = erpType.toUpperCase() as IntegrationType;
 		const resolvedName =
-			name ?? (await this.generateDefaultName(userId, resolvedErpType));
+			name ?? (await this.generateDefaultName(userId, resolvedIntegrationType));
 
 		return prisma.integration.create({
 			data: {
 				userId,
-				erpType: resolvedErpType,
+				integrationType: resolvedIntegrationType,
 				name: resolvedName,
 				authConfig: encrypt(JSON.stringify(authConfig)),
 				erpConfig: encrypt(JSON.stringify(erpConfig)),
@@ -62,7 +63,7 @@ export class IntegrationService {
 			},
 			select: {
 				id: true,
-				erpType: true,
+				integrationType: true,
 				name: true,
 				isActive: true,
 				testedAt: true,
@@ -99,7 +100,7 @@ export class IntegrationService {
 			},
 			select: {
 				id: true,
-				erpType: true,
+				integrationType: true,
 				name: true,
 				isActive: true,
 				testedAt: true,
@@ -144,7 +145,7 @@ export class IntegrationService {
 	async getAdapter(userId: string, integrationId: string): Promise<ErpAdapter> {
 		const integration = await this.findOwnedOrThrow(userId, integrationId);
 
-		const Adapter = erpRegistry[integration.erpType];
+		const Adapter = erpRegistry[integration.integrationType];
 		if (!Adapter) {
 			throw new Error("ERP_NOT_SUPPORTED");
 		}
@@ -154,6 +155,22 @@ export class IntegrationService {
 
 		return new Adapter({ authConfig, erpConfig });
 	}
+
+	async getChatwootClient(integrationId: string, userId: string): Promise<ChatwootClient> {
+        const integration = await prisma.integration.findUnique({
+            where: { id: integrationId },
+        });
+
+        if (!integration) throw new Error("INTEGRATION_NOT_FOUND");
+        if (integration.userId !== userId) throw new Error("INTEGRATION_FORBIDDEN");
+        if (integration.integrationType !== "CHATWOOT") {
+            throw new Error("INTEGRATION_NOT_CHATWOOT");
+        }
+        if (!integration.isActive) throw new Error("INTEGRATION_NOT_ACTIVE");
+
+        const auth = JSON.parse(decrypt(integration.authConfig)) as ChatwootAuthConfig;
+        return new ChatwootClient(auth);
+    }
 
 	// -------------------------------------------------------------------------
 	// Helpers privados
@@ -173,7 +190,7 @@ export class IntegrationService {
 
 	private toSafeView(integration: {
 		id: string;
-		erpType: ErpType;
+		integrationType: IntegrationType;
 		name: string;
 		isActive: boolean;
 		testedAt: Date | null;
@@ -181,7 +198,7 @@ export class IntegrationService {
 	}) {
 		return {
 			id: integration.id,
-			erpType: integration.erpType,
+			integrationType: integration.integrationType,
 			name: integration.name,
 			isActive: integration.isActive,
 			testedAt: integration.testedAt,
@@ -191,12 +208,12 @@ export class IntegrationService {
 
 	private async generateDefaultName(
 		userId: string,
-		erpType: ErpType,
+		integrationType: IntegrationType,
 	): Promise<string> {
 		const count = await prisma.integration.count({
-			where: { userId, erpType },
+			where: { userId, integrationType },
 		});
 
-		return `${erpType} #${count + 1}`;
+		return `${integrationType} #${count + 1}`;
 	}
 }

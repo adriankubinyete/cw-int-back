@@ -1,6 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// prisma/schema.prisma
 datasource db {
   provider = "postgresql"
 }
@@ -15,10 +13,11 @@ enum ExecutionStatus {
   ERROR
 }
 
-enum ErpType {
+enum IntegrationType {
   IXCSOFT
   SGP
   HUBSOFT
+  CHATWOOT
 }
 
 model User {
@@ -35,19 +34,22 @@ model User {
 }
 
 model Workflow {
-  id          String   @id @default(uuid())
-  userId      String
-  name        String
-  description String?
-  graph       Json
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  userId                String
+  name                  String
+  description           String?
+  graph                 Json
+  isActive              Boolean  @default(false)
+  chatwootIntegrationId String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  executionLogs ExecutionLog[]
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatwootIntegration Integration?   @relation("WorkflowChatwoot", fields: [chatwootIntegrationId], references: [id], onDelete: SetNull)
+  executionLogs       ExecutionLog[]
 
   @@index([userId])
+  @@index([chatwootIntegrationId])
 }
 
 model ExecutionLog {
@@ -67,19 +69,20 @@ model ExecutionLog {
 }
 
 model Integration {
-  id         String    @id @default(uuid())
-  userId     String
-  erpType    ErpType
-  name       String
-  authConfig String    // JSON criptografado — url, token e demais campos de autenticação
-  erpConfig  String    @default("{}") // JSON criptografado — configurações específicas do ERP
-  isActive   Boolean   @default(false)
-  testedAt   DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id              String          @id @default(uuid())
+  userId          String
+  integrationType IntegrationType
+  name            String
+  authConfig      String          // JSON criptografado — url, token, etc
+  erpConfig       String          @default("{}") // JSON criptografado — configs específicas
+  isActive        Boolean         @default(false)
+  testedAt        DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflows Workflow[] @relation("WorkflowChatwoot")
 
   @@index([userId])
-  @@index([userId, erpType])
+  @@index([userId, integrationType])
 }

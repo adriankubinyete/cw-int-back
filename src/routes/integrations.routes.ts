@@ -77,7 +77,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 		routeLogger.info("integration created", {
 			userId: request.user.userId,
 			integrationId: integration.id,
-			erpType: integration.erpType,
+			integrationType: integration.integrationType,
 			name: integration.name,
 		});
 

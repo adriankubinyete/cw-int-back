@@ -18,12 +18,22 @@ async function main() {
 			integrations: {
 				create: [
 					{
-						name: "test",
-						erpType: "IXCSOFT",
+						name: "IXC - Teste",
+						integrationType: "IXCSOFT",
 						authConfig: encrypt(
 							JSON.stringify({
 								url: "https://fake.ixcsoft.com.br",
 								token: "token",
+							}),
+						),
+					},
+					{
+						name: "Chatwoot - Teste",
+						integrationType: "CHATWOOT",
+						authConfig: encrypt(
+							JSON.stringify({
+								baseUrl: "https://fake.chatwoot.com.br",
+								apiToken: "token",
 							}),
 						),
 					},
@@ -35,13 +45,36 @@ async function main() {
 						name: "test",
 						description: "test",
 						graph: { nodes: [], edges: [] },
+						// chatwootIntegrationId vai ser vinculado depois do create
+						// porque precisamos do id gerado
 					},
 				],
 			},
 		},
+		include: {
+			integrations: true,
+			workflows: true,
+		},
 	});
 
-	console.log({ admin });
+	// vincula o workflow à integração do Chatwoot
+	const chatwootIntegration = admin.integrations.find(
+		(i) => i.integrationType === "CHATWOOT"
+	);
+	const workflow = admin.workflows[0];
+
+	if (chatwootIntegration && workflow) {
+		await prisma.workflow.update({
+			where: { id: workflow.id },
+			data: { chatwootIntegrationId: chatwootIntegration.id },
+		});
+	}
+
+	console.log({
+		admin: { id: admin.id, email: admin.email },
+		integrations: admin.integrations.map((i) => ({ id: i.id, name: i.name, type: i.integrationType })),
+		workflow: { id: workflow?.id, chatwootIntegrationId: chatwootIntegration?.id },
+	});
 }
 
 main()

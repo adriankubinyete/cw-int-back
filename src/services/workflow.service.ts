@@ -1,5 +1,5 @@
 import { ExecutionStatus } from "@prisma/client";
-import type { UpdateWorkflowDto } from "../dtos/workflow.dto";
+import type { UpdateWorkflowInput } from "../schemas/workflow.schema";
 import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 
@@ -50,7 +50,7 @@ export class WorkflowService {
 		});
 	}
 
-	async update(id: string, userId: string, data: UpdateWorkflowDto) {
+	async update(id: string, userId: string, data: UpdateWorkflowInput) {
 		// handle workflow not found or workflow forbidden
 		await this.getById(id, userId);
 
