@@ -7,8 +7,8 @@ import { config } from "./config";
 import { logger, toError } from "./lib/logger";
 import { loggerPlugin } from "./plugins/logger.plugin";
 import { authRoutes } from "./routes/auth.routes";
-import { workflowsRoutes } from "./routes/workflows.routes";
 import { integrationsRoutes } from "./routes/integrations.routes";
+import { workflowsRoutes } from "./routes/workflows.routes";
 
 export function buildApp() {
 	const app = Fastify({ logger: false });

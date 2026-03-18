@@ -10,11 +10,11 @@ async function start() {
 		host: config.fastifyHost,
 	});
 
-	logger.info('')
+	logger.info("");
 	logger.info(`server started`);
-	logger.debug(`host: ` + config.fastifyHost);
-	logger.debug(`port: ` + config.fastifyPort);
-	logger.info('')
+	logger.debug(`host: ${config.fastifyHost}`);
+	logger.debug(`port: ${config.fastifyPort}`);
+	logger.info("");
 }
 
 start();

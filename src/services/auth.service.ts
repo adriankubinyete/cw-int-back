@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../lib/prisma";
 import { logger } from "../lib/logger";
+import { prisma } from "../lib/prisma";
 
 const serviceLogger = logger.child({ context: "AuthService" });
 
@@ -45,7 +45,9 @@ export class AuthService {
 			throw new Error("Invalid credentials");
 		}
 
-		serviceLogger.info(`user logged in: ${email.replace(/^(.{2})[^@]*(?=@)/, "$1***")}, id: ${user.id}`);
+		serviceLogger.info(
+			`user logged in: ${email.replace(/^(.{2})[^@]*(?=@)/, "$1***")}, id: ${user.id}`,
+		);
 
 		return {
 			id: user.id,
@@ -54,4 +56,3 @@ export class AuthService {
 		};
 	}
 }
-

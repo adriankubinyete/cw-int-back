@@ -9,7 +9,10 @@
 		"dev": "tsx watch src/server.ts",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
-		"format": "biome format --write ."
+		"format": "biome format --write .",
+		"db:generate": "prisma generate",
+		"db:seed": "prisma db seed",
+		"db:reset": "prisma migrate reset && pnpm db:seed"
 	},
 	"keywords": [],
 	"author": "",

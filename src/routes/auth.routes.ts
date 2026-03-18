@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { authMiddleware } from "../middlewares/auth.middleware";
 import { logger, toError } from "../lib/logger";
+import { authMiddleware } from "../middlewares/auth.middleware";
 import { AuthService } from "../services/auth.service";
 
 const authService = new AuthService();
@@ -62,10 +62,12 @@ export async function authRoutes(app: FastifyInstance) {
 		},
 	);
 
-	routeLogger.info([
-		"- Auth Routes registered",
-		"POST   /api/auth/register - create a new user",
-		"POST   /api/auth/login    - logs an user to get access token",
-		"GET    /api/auth/me       - returns the current authenticated user",
-	].join("\n"));
+	routeLogger.info(
+		[
+			"- Auth Routes registered",
+			"POST   /api/auth/register - create a new user",
+			"POST   /api/auth/login    - logs an user to get access token",
+			"GET    /api/auth/me       - returns the current authenticated user",
+		].join("\n"),
+	);
 }
