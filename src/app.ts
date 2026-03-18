@@ -8,6 +8,7 @@ import { logger, toError } from "./lib/logger";
 import { loggerPlugin } from "./plugins/logger.plugin";
 import { authRoutes } from "./routes/auth.routes";
 import { workflowsRoutes } from "./routes/workflows.routes";
+import { integrationsRoutes } from "./routes/integrations.routes";
 
 export function buildApp() {
 	const app = Fastify({ logger: false });
@@ -18,6 +19,7 @@ export function buildApp() {
 
 	app.register(authRoutes, { prefix: "/api" });
 	app.register(workflowsRoutes, { prefix: "/api" });
+	app.register(integrationsRoutes, { prefix: "/api" });
 
 	app.setErrorHandler((error, request, reply) => {
 		if (error instanceof ZodError) {

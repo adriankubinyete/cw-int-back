@@ -18,3 +18,5 @@ pnpm-debug.log*
 
 /src/generated/prisma
 .biome
+
+src/test.ts

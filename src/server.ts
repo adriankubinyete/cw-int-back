@@ -6,11 +6,15 @@ async function start() {
 	const app = buildApp();
 
 	await app.listen({
-		port: config.port,
-		host: "0.0.0.0",
+		port: config.fastifyPort,
+		host: config.fastifyHost,
 	});
 
-	logger.debug("server started", { port: config.port });
+	logger.info('')
+	logger.info(`server started`);
+	logger.debug(`host: ` + config.fastifyHost);
+	logger.debug(`port: ` + config.fastifyPort);
+	logger.info('')
 }
 
 start();
