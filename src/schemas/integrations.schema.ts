@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
-// Auth configs por ERP
-// Cada ERP define exatamente o que precisa pra autenticar
+// Auth configs
 // ---------------------------------------------------------------------------
+
+const chatwootAuthConfig = z.object({
+	baseUrl: z.string().url().max(2048).trim(),
+	apiToken: z.string().min(1).max(2048).trim(),
+});
 
 const ixcsoftAuthConfig = z.object({
 	url: z.string().url().max(2048).trim(),
@@ -22,9 +26,12 @@ const hubsoftAuthConfig = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Erp configs por ERP (comportamentos específicos)
-// Por ora opcionais — sem erp_config o sistema usa os defaults
+// Erp configs
 // ---------------------------------------------------------------------------
+
+const chatwootErpConfig = z.object({
+	// @TODO: account_id default, inbox_id, etc
+});
 
 const ixcsoftErpConfig = z.object({
 	enable_search_client_by_phone: z.boolean().default(true),
@@ -50,37 +57,35 @@ const hubsoftErpConfig = z.object({
 // Schemas de criação — discriminatedUnion por instance_type
 // ---------------------------------------------------------------------------
 
-const createIxcsoftSchema = z.object({
-	instance_type: z.literal("ixcsoft"),
-	name: z.string().min(1).max(255).trim().optional(),
-	auth_config: ixcsoftAuthConfig,
-	erp_config: ixcsoftErpConfig.optional(),
-});
-
-const createSgpSchema = z.object({
-	instance_type: z.literal("sgp"),
-	name: z.string().min(1).max(255).trim().optional(),
-	auth_config: sgpAuthConfig,
-	erp_config: sgpErpConfig.optional(),
-});
-
-const createHubsoftSchema = z.object({
-	instance_type: z.literal("hubsoft"),
-	name: z.string().min(1).max(255).trim().optional(),
-	auth_config: hubsoftAuthConfig,
-	erp_config: hubsoftErpConfig.optional(),
-});
-
 export const createIntegrationSchema = z.discriminatedUnion("instance_type", [
-	createIxcsoftSchema,
-	createSgpSchema,
-	createHubsoftSchema,
+	z.object({
+		instance_type: z.literal("chatwoot"),
+		name: z.string().min(1).max(255).trim().optional(),
+		auth_config: chatwootAuthConfig,
+		erp_config: chatwootErpConfig.optional(),
+	}),
+	z.object({
+		instance_type: z.literal("ixcsoft"),
+		name: z.string().min(1).max(255).trim().optional(),
+		auth_config: ixcsoftAuthConfig,
+		erp_config: ixcsoftErpConfig.optional(),
+	}),
+	z.object({
+		instance_type: z.literal("sgp"),
+		name: z.string().min(1).max(255).trim().optional(),
+		auth_config: sgpAuthConfig,
+		erp_config: sgpErpConfig.optional(),
+	}),
+	z.object({
+		instance_type: z.literal("hubsoft"),
+		name: z.string().min(1).max(255).trim().optional(),
+		auth_config: hubsoftAuthConfig,
+		erp_config: hubsoftErpConfig.optional(),
+	}),
 ]);
 
 // ---------------------------------------------------------------------------
-// Schema de update — campos livres, sem discriminar por tipo
-// auth_config e erp_config são objetos abertos — a validação específica
-// não acontece aqui porque não sabemos o tipo sem buscar no banco
+// Schema de update
 // ---------------------------------------------------------------------------
 
 export const updateIntegrationSchema = z
@@ -100,16 +105,15 @@ export const updateIntegrationSchema = z
 export type CreateIntegrationInput = z.infer<typeof createIntegrationSchema>;
 export type UpdateIntegrationInput = z.infer<typeof updateIntegrationSchema>;
 
+export type ChatwootAuthConfig = z.infer<typeof chatwootAuthConfig>;
 export type IxcsoftAuthConfig = z.infer<typeof ixcsoftAuthConfig>;
 export type SgpAuthConfig = z.infer<typeof sgpAuthConfig>;
 export type HubsoftAuthConfig = z.infer<typeof hubsoftAuthConfig>;
 
+export type ChatwootErpConfig = z.infer<typeof chatwootErpConfig>;
 export type IxcsoftErpConfig = z.infer<typeof ixcsoftErpConfig>;
 export type SgpErpConfig = z.infer<typeof sgpErpConfig>;
 export type HubsoftErpConfig = z.infer<typeof hubsoftErpConfig>;
 
-export type AnyAuthConfig =
-	| IxcsoftAuthConfig
-	| SgpAuthConfig
-	| HubsoftAuthConfig;
-export type AnyErpConfig = IxcsoftErpConfig | SgpErpConfig | HubsoftErpConfig;
+export type AnyAuthConfig = ChatwootAuthConfig | IxcsoftAuthConfig | SgpAuthConfig | HubsoftAuthConfig;
+export type AnyErpConfig = ChatwootErpConfig | IxcsoftErpConfig | SgpErpConfig | HubsoftErpConfig;

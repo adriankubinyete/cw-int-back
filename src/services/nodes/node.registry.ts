@@ -3,11 +3,13 @@ import type { NodeHandler } from "./node.interface";
 import { SendMessageNode } from "./send-message.node";
 import { SearchClientNode } from "./search-client.node";
 import { ConditionNode } from "./condition.node";
+import { AskInputNode } from "./ask-input.node";
 
 const handlers: NodeHandler[] = [
     new SendMessageNode(),
     new SearchClientNode(),
     new ConditionNode(),
+    new AskInputNode(),
 ];
 
 export const nodeRegistry = {

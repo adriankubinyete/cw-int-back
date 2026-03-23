@@ -2,9 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { logger, toError } from "../lib/logger";
 import { authMiddleware } from "../middlewares/auth.middleware";
-import { AuthService } from "../services/auth.service";
+import * as AuthService from "../services/auth.service";
 
-const authService = new AuthService();
 const routeLogger = logger.child({ context: "AuthRoutes" });
 
 export async function authRoutes(app: FastifyInstance) {
@@ -23,7 +22,7 @@ export async function authRoutes(app: FastifyInstance) {
 		const { name, email, password } = registerSchema.parse(request.body);
 
 		try {
-			const user = await authService.register(name, email, password);
+			const user = await AuthService.register(name, email, password);
 			routeLogger.info("user registered", { userId: user.id, email });
 			return reply.code(201).send(user);
 		} catch (err) {
@@ -38,7 +37,7 @@ export async function authRoutes(app: FastifyInstance) {
 		const { email, password } = loginSchema.parse(request.body);
 
 		try {
-			const user = await authService.login(email, password);
+			const user = await AuthService.login(email, password);
 
 			const accessToken = await reply.jwtSign({
 				userId: user.id,

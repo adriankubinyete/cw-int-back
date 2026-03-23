@@ -1,7 +1,7 @@
 // src/services/nodes/condition.node.ts
 import type { NodeHandler, NodeExecutionContext, NodeExecutionResult } from "./node.interface";
 import { logger } from "../../lib/logger";
-import { resolveVariable } from "../../utils/format.utils";
+// import { resolveVariable } from "../../utils/format.utils";
 
 const nodeLogger = logger.child({ context: "ConditionNode" });
 
@@ -58,7 +58,8 @@ export class ConditionNode implements NodeHandler {
         if (!variable) throw new Error("condition: campo 'variable' é obrigatório");
         if (!operator) throw new Error("condition: campo 'operator' é obrigatório");
 
-        const resolved = resolveVariable(variable, execution);
+        // const resolved = resolveVariable(variable, execution);
+        const resolved = 'test'
         const result = this.evaluate(resolved, operator, value);
 
         nodeLogger.debug("condition evaluated", {

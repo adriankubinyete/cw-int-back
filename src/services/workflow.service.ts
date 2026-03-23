@@ -5,120 +5,91 @@ import { prisma } from "../lib/prisma";
 
 const serviceLogger = logger.child({ context: "WorkflowService" });
 
-export class WorkflowService {
-	async listByUser(userId: string) {
-		return prisma.workflow.findMany({
-			where: { userId },
-			orderBy: { createdAt: "desc" },
-			include: {
-				_count: {
-					select: {
-						executionLogs: true,
-					},
-				},
-			},
-		});
-	}
+export async function listByUser(userId: string) {
+    return prisma.workflow.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        include: {
+            _count: {
+                select: { executions: true },
+            },
+        },
+    });
+}
 
-	async getById(id: string, userId: string) {
-		const workflow = await prisma.workflow.findUnique({ where: { id } });
+export async function findById(id: string) {
+    const workflow = await prisma.workflow.findUnique({ where: { id } });
+    if (!workflow) throw new Error("WORKFLOW_NOT_FOUND");
+    return workflow;
+}
 
-		if (!workflow) {
-			throw new Error("WORKFLOW_NOT_FOUND");
-		}
+export async function findActiveById(id: string) {
+    const workflow = await findById(id);
+    if (!workflow.isActive) throw new Error("WORKFLOW_INACTIVE");
+    if (!workflow.chatwootIntegrationId) throw new Error("WORKFLOW_MISSING_CHATWOOT");
+    return workflow;
+}
 
-		if (workflow.userId !== userId) {
-			serviceLogger.warn(
-				`workflow access denied: workflow ${id} for user ${userId}`,
-			);
-			throw new Error("WORKFLOW_FORBIDDEN");
-		}
-		return workflow;
-	}
+export async function create(userId: string, name: string, description?: string) {
+    return prisma.workflow.create({
+        data: {
+            userId,
+            name,
+            description: description ?? null,
+            graph: { nodes: [], edges: [] },
+        },
+    });
+}
 
-	async create(userId: string, name: string, description?: string) {
-		return prisma.workflow.create({
-			data: {
-				userId,
-				name,
-				description: description ?? null,
-				graph: {
-					nodes: [],
-					edges: [],
-				},
-			},
-		});
-	}
+export async function update(id: string, userId: string, data: UpdateWorkflowInput) {
+    const workflow = await findById(id);
+    if (workflow.userId !== userId) throw new Error("WORKFLOW_FORBIDDEN");
 
-	async update(id: string, userId: string, data: UpdateWorkflowInput) {
-		// handle workflow not found or workflow forbidden
-		await this.getById(id, userId);
+    if (data.graph) {
+        await prisma.execution.updateMany({
+            where: { workflowId: id, status: "WAITING_INPUT" },
+            data: { status: "TIMED_OUT", finishedAt: new Date() },
+        });
+    }
 
-		// redundant
-		// if (!workflow) {
-		//     throw new Error("WORKFLOW_NOT_FOUND");
-		// }
+    return prisma.workflow.update({ where: { id }, data });
+}
 
-		return prisma.workflow.update({
-			where: { id },
-			data,
-		});
-	}
+export async function toggle(id: string, userId: string) {
+    const workflow = await findById(id);
+    if (workflow.userId !== userId) throw new Error("WORKFLOW_FORBIDDEN");
+    
+    return prisma.workflow.update({
+        where: { id },
+        data: { isActive: !workflow.isActive },
+        select: { isActive: true },
+    });
+}
 
-	async toggle(id: string, userId: string) {
-		const workflow = await this.getById(id, userId);
+export async function remove(id: string, userId: string) {
+    const workflow = await findById(id);
+    if (workflow.userId !== userId) throw new Error("WORKFLOW_FORBIDDEN");
+    await prisma.workflow.delete({ where: { id } });
+}
 
-		const updated = await prisma.workflow.update({
-			where: { id },
-			data: {
-				isActive: !workflow.isActive,
-			},
-			select: {
-				isActive: true,
-			},
-		});
+export async function getExecutions(
+    workflowId: string,
+    userId: string,
+    page: number,
+    limit: number,
+    status?: string,
+) {
+    const workflow = await findById(workflowId);
+    if (workflow.userId !== userId) throw new Error("WORKFLOW_FORBIDDEN");
 
-		return updated;
-	}
+    const parsedStatus = Object.values(ExecutionStatus).includes(status as ExecutionStatus)
+        ? (status as ExecutionStatus)
+        : undefined;
 
-	async delete(id: string, userId: string) {
-		// handle workflow not found or workflow forbidden
-		await this.getById(id, userId);
-
-		await prisma.workflow.delete({
-			where: { id },
-		});
-	}
-
-	async getLogs(
-		workflowId: string,
-		userId: string,
-		page: number,
-		limit: number,
-		status?: string,
-	) {
-		// handle workflow not found or workflow forbidden
-		await this.getById(workflowId, userId);
-
-		const skip = (page - 1) * limit;
-
-		const parsedStatus =
-			status !== undefined
-				? Object.values(ExecutionStatus).includes(status as ExecutionStatus)
-					? (status as ExecutionStatus)
-					: undefined
-				: undefined;
-
-		return prisma.executionLog.findMany({
-			where: {
-				workflowId,
-				status: parsedStatus,
-			},
-			orderBy: {
-				startedAt: "desc",
-			},
-			skip,
-			take: limit,
-		});
-	}
+    return prisma.execution.findMany({
+        where: { workflowId, status: parsedStatus },
+        orderBy: { startedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+    });
 }

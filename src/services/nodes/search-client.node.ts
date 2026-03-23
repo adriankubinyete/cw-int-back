@@ -1,10 +1,9 @@
 // src/services/nodes/search-client.node.ts
 import type { NodeHandler, NodeExecutionContext, NodeExecutionResult } from "./node.interface";
-import { IntegrationService } from "../integration.service";
+import * as IntegrationService from "../integration.service";
 import { logger } from "../../lib/logger";
 
 const nodeLogger = logger.child({ context: "SearchClientNode" });
-const integrationService = new IntegrationService();
 
 export class SearchClientNode implements NodeHandler {
     definition = {
@@ -41,7 +40,7 @@ export class SearchClientNode implements NodeHandler {
         const { integrationId, searchBy } = node.data;
         if (!integrationId) throw new Error("searchClient: campo 'integrationId' é obrigatório");
 
-        const adapter = await integrationService.getAdapter(userId, integrationId);
+        const adapter = await IntegrationService.getErpAdapter(userId, integrationId);
 
         let client = null;
 

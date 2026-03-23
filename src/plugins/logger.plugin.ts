@@ -10,24 +10,13 @@ export const loggerPlugin = fp(async (app: FastifyInstance) => {
 	app.decorate("logger", logger);
 
 	app.addHook("onRequest", (request, _reply, done) => {
-		logger.info("incoming request", {
-			requestId: request.id,
-			method: request.method,
-			url: request.url,
-			ip: request.ip,
-		});
+		logger.silly(`incoming request: id=${request.id} method=${request.method} url=${request.url} ip=${request.ip}`);
 		done();
 	});
 
 	app.addHook("onResponse", (request, reply, done) => {
-		logger.info("request completed", {
-			requestId: request.id,
-			method: request.method,
-			url: request.url,
-			statusCode: reply.statusCode,
-			// @ts-expect-error — definido abaixo no onRequest
-			responseTimeMs: Date.now() - request.startTime,
-		});
+		// @ts-expect-error shut up?
+		logger.silly(`request completed: id=${request.id} method=${request.method} url=${request.url}: statusCode=${reply.statusCode} responseTimeMs=${Date.now() - request.startTime}ms`);
 		done();
 	});
 

@@ -1,19 +1,9 @@
 import type { ChatwootClient } from "../../lib/chatwoot";
 
-export interface NodeDefinition {
-    type: string;
-    label: string;
-    description: string;
-    category: "messaging" | "erp" | "logic";
-    icon: string;
-    configSchema: FieldSchema[];
-    outputs: NodeOutput[];
-}
-
 export interface FieldSchema {
     key: string;
     label: string;
-    type: "text" | "textarea" | "select" | "integration";
+    type: "text" | "textarea" | "select" | "integration" | "number";
     required: boolean;
     placeholder?: string;
     options?: { label: string; value: string }[];
@@ -22,6 +12,16 @@ export interface FieldSchema {
 export interface NodeOutput {
     key: string;
     label: string;
+}
+
+export interface NodeDefinition {
+    type: string;
+    label: string;
+    description: string;
+    category: "messaging" | "erp" | "logic" | "interaction";
+    icon: string;
+    configSchema: FieldSchema[];
+    outputs: NodeOutput[];
 }
 
 export interface NodeHandler {

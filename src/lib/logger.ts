@@ -50,6 +50,18 @@ export function toError(err: unknown): Error {
 	return err instanceof Error ? err : new Error(String(err));
 }
 
+const colors = {
+    error: "red",
+    warn: "yellow",
+    info: "green",
+    http: "magenta",
+    verbose: "cyan",
+    debug: "blue",
+    silly: "gray",
+};
+
+winston.addColors(colors);
+
 export const logger = winston.createLogger({
 	level: config.logLevel ?? "info",
 	transports,

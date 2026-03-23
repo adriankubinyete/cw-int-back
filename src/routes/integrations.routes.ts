@@ -6,9 +6,8 @@ import {
 	createIntegrationSchema,
 	updateIntegrationSchema,
 } from "../schemas/integrations.schema";
-import { IntegrationService } from "../services/integration.service";
+import * as IntegrationService from "../services/integration.service";
 
-const integrationService = new IntegrationService();
 const routeLogger = logger.child({ context: "IntegrationsRoutes" });
 
 const idParamsSchema = z.object({ id: z.string() });
@@ -31,7 +30,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 			userId: request.user.userId,
 			erpType: query.erpType,
 		});
-		return integrationService.list(request.user.userId, query.erpType);
+		return IntegrationService.list(request.user.userId, query.erpType);
 	});
 
 	// -------------------------------------------------------------------------
@@ -42,7 +41,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 		const { id } = idParamsSchema.parse(request.params);
 
 		try {
-			const integration = await integrationService.getById(
+			const integration = await IntegrationService.getById(
 				request.user.userId,
 				id,
 			);
@@ -66,7 +65,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 	app.post("/integrations", async (request, reply) => {
 		const body = createIntegrationSchema.parse(request.body);
 
-		const integration = await integrationService.save(
+		const integration = await IntegrationService.save(
 			request.user.userId,
 			body.instance_type,
 			body.auth_config,
@@ -94,7 +93,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 		const body = updateIntegrationSchema.parse(request.body);
 
 		try {
-			const integration = await integrationService.update(
+			const integration = await IntegrationService.update(
 				request.user.userId,
 				id,
 				body,
@@ -119,7 +118,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 		const { id } = idParamsSchema.parse(request.params);
 
 		try {
-			const success = await integrationService.test(request.user.userId, id);
+			const success = await IntegrationService.test(request.user.userId, id);
 			routeLogger.info("integration tested", {
 				userId: request.user.userId,
 				integrationId: id,
@@ -154,7 +153,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
 		const { id } = idParamsSchema.parse(request.params);
 
 		try {
-			await integrationService.delete(request.user.userId, id);
+			await IntegrationService.remove(request.user.userId, id);
 			routeLogger.info("integration deleted", {
 				userId: request.user.userId,
 				integrationId: id,

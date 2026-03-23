@@ -32,10 +32,12 @@ export class SendMessageNode implements NodeHandler {
             throw new Error("sendMessage: accountId ou conversationId ausente no contexto");
         }
 
+        nodeLogger.warn(`pre-interpolate: nodeId=${node.id} conversationId=${conversationId}`, { message: raw });
         const rendered = interpolate(raw, execution);
+        nodeLogger.warn(`post-interpolate nodeId=${node.id} conversationId=${conversationId}`, { message: rendered });
         await chatwoot.sendMessage(accountId, conversationId, rendered);
 
-        nodeLogger.info("message sent", { nodeId: node.id, conversationId, message: rendered });
+        nodeLogger.info(`message sent: nodeId=${node.id} conversationId=${conversationId}`, { message: rendered });
 
         return { output: "default" };
     }
